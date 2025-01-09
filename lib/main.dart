@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Buttons',
-      home: MQTTPage(), // Using MQTTPage instead of a simple home
+      home: MQTTPage(),
     );
   }
 }
@@ -27,20 +27,30 @@ class MQTTPage extends StatefulWidget {
 }
 
 class _MQTTPageState extends State<MQTTPage> {
-  final String _broker = '192.168.8.62'; // Replace with your broker's IP
+  String _broker = '192.168.8.62'; // Default broker IP
   final int _port = 1883;
   final String _clientId = 'flutter_client';
   final String _topic = 'LedControl';
   late MqttServerClient _client;
+  String _connectionStatus = 'Disconnected';
   String _receivedMessage = "No messages yet";
+
+  final TextEditingController _brokerController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _connectToBroker();
+    _brokerController.text = _broker; // Pre-fill with default broker IP
   }
 
   Future<void> _connectToBroker() async {
+    setState(() {
+      _connectionStatus = 'Connecting...';
+    });
+
+    // Use the broker IP entered in the text field
+    _broker = _brokerController.text;
+
     _client = MqttServerClient(_broker, _clientId);
     _client.port = _port;
     _client.keepAlivePeriod = 20;
@@ -52,47 +62,48 @@ class _MQTTPageState extends State<MQTTPage> {
         .withClientIdentifier(_clientId)
         .startClean()
         .withWillQos(MqttQos.atMostOnce);
-
     _client.connectionMessage = connMessage;
 
     try {
-      print('Connecting to the MQTT broker...');
       await _client.connect();
     } on Exception catch (e) {
-      print('Connection failed: $e');
+      setState(() {
+        _connectionStatus = 'Connection failed: $e';
+      });
       _client.disconnect();
     }
   }
 
   void _onConnected() {
-    print('Connected to the broker');
     setState(() {
-      _client.subscribe(_topic, MqttQos.atLeastOnce);
-      _client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> messages) {
-        final MqttPublishMessage recMessage = messages[0].payload as MqttPublishMessage;
-        final String message =
-        MqttPublishPayload.bytesToStringAsString(recMessage.payload.message);
-        setState(() {
-          _receivedMessage = message;
-        });
-        print('Received message: $message');
+      _connectionStatus = 'Connected';
+    });
+    _client.subscribe(_topic, MqttQos.atLeastOnce);
+    _client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> messages) {
+      final MqttPublishMessage recMessage = messages[0].payload as MqttPublishMessage;
+      final String message =
+      MqttPublishPayload.bytesToStringAsString(recMessage.payload.message);
+      setState(() {
+        _receivedMessage = message;
       });
     });
   }
 
   void _onDisconnected() {
-    print('Disconnected from the broker');
+    setState(() {
+      _connectionStatus = 'Disconnected';
+    });
   }
 
   void _publishMessage(String message) {
     final builder = MqttClientPayloadBuilder();
     builder.addString(message);
     _client.publishMessage(_topic, MqttQos.atLeastOnce, builder.payload!);
-    print('Published message: $message');
   }
 
   @override
   void dispose() {
+    _brokerController.dispose();
     _client.disconnect();
     super.dispose();
   }
@@ -107,128 +118,79 @@ class _MQTTPageState extends State<MQTTPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[
+            Text('Connection Status: $_connectionStatus'),
             Text('Received Message: $_receivedMessage'),
             const SizedBox(height: 20),
-            Container(
-              margin: const EdgeInsets.only(bottom: 50),
+            TextField(
+              controller: _brokerController,
+              decoration: const InputDecoration(
+                labelText: 'Broker IP',
+                border: OutlineInputBorder(),
+              ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _publishMessage('1'); // Send 1 when Blink button is pressed
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 150),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _connectToBroker,
+              child: const Text('Connect'),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const Text('Blink'),
-                      SvgPicture.asset(
-                        'assets/images/blink.svg', // Path to your SVG
-                        width: 70,
-                      ),
-                      const SizedBox(height: 8),
+                      _buildStyledButton('Blink', 'assets/images/blink.svg', '1'),
+                      _buildStyledButton(
+                          'Rainbow', 'assets/images/rainbow.svg', '2'),
                     ],
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _publishMessage('2'); // Send 2 when Snake button is pressed
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 150),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const Text('Rainbow'),
-                      SvgPicture.asset(
-                        'assets/images/rainbow.svg', // Path to your SVG
-                        width: 70,
-                      ),
-                      const SizedBox(height: 8),
+                      _buildStyledButton('Snake', 'assets/images/snake.svg', '3'),
+                      _buildStyledButton('Fade', 'assets/images/fade.svg', '4'),
                     ],
                   ),
-                ),
-              ],
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 50),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _publishMessage('3'); // Send 3 when Rainbow button is pressed
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 150),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Snake'),
-                      SvgPicture.asset(
-                        'assets/images/snake.svg', // Path to your SVG
-                        width: 70,
+                  ElevatedButton(
+                    onPressed: () => _publishMessage('0'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(200, 50),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _publishMessage('4'); // Send 4 when Fade button is pressed
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 150),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
+                    child: const Text('Off'),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Fade'),
-                      SvgPicture.asset(
-                        'assets/images/fade.svg', // Path to your SVG
-                        width: 70,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 50),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _publishMessage('0'); // Send 0 when Off button is pressed
-                  },
-                  child: const Text('Off'),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStyledButton(String text, String assetPath, String message) {
+    return ElevatedButton(
+      onPressed: () => _publishMessage(message),
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(100, 150),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(text),
+          SvgPicture.asset(
+            assetPath,
+            width: 70,
+          ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
