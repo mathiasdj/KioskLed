@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -105,10 +106,12 @@ class _MQTTPageState extends State<MQTTPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Text('Received Message: $_receivedMessage'),
             const SizedBox(height: 20),
+            Container(
+              margin: const EdgeInsets.only(bottom: 50),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -116,27 +119,50 @@ class _MQTTPageState extends State<MQTTPage> {
                   onPressed: () {
                     _publishMessage('1'); // Send 1 when Blink button is pressed
                   },
-                  child: const Text('Blink'),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 100),
+                    minimumSize: const Size(100, 150),
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Blink'),
+                      SvgPicture.asset(
+                        'assets/images/blink.svg', // Path to your SVG
+                        width: 70,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     _publishMessage('2'); // Send 2 when Snake button is pressed
                   },
-                  child: const Text('Rainbow'),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 100),
+                    minimumSize: const Size(100, 150),
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Rainbow'),
+                      SvgPicture.asset(
+                        'assets/images/rainbow.svg', // Path to your SVG
+                        width: 70,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
               ],
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 50),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -145,27 +171,50 @@ class _MQTTPageState extends State<MQTTPage> {
                   onPressed: () {
                     _publishMessage('3'); // Send 3 when Rainbow button is pressed
                   },
-                  child: const Text('Snake'),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 100),
+                    minimumSize: const Size(100, 150),
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Snake'),
+                      SvgPicture.asset(
+                        'assets/images/snake.svg', // Path to your SVG
+                        width: 70,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     _publishMessage('4'); // Send 4 when Fade button is pressed
                   },
-                  child: const Text('Fade'),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 100),
+                    minimumSize: const Size(100, 150),
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Fade'),
+                      SvgPicture.asset(
+                        'assets/images/fade.svg', // Path to your SVG
+                        width: 70,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
               ],
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 50),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
