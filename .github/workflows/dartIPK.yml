@@ -1,7 +1,7 @@
 name: Android-apk-build
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   build-android:
