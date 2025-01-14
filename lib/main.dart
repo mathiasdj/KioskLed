@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,6 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Buttons',
+      debugShowCheckedModeBanner: false,
       home: MQTTPage(),
     );
   }
@@ -27,13 +27,14 @@ class MQTTPage extends StatefulWidget {
 }
 
 class _MQTTPageState extends State<MQTTPage> {
-  String _broker = '192.168.8.62'; // Default broker IP
+  String _broker = '192.168.4.1'; // Default broker IP
   final int _port = 1883;
   final String _clientId = 'flutter_client';
   final String _topic = 'LedControl';
   late MqttServerClient _client;
   String _connectionStatus = 'Disconnected';
   String _receivedMessage = "No messages yet";
+  double _currentSliderValue = 50;
 
   final TextEditingController _brokerController = TextEditingController();
 
@@ -141,17 +142,28 @@ class _MQTTPageState extends State<MQTTPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStyledButton('Blink', 'assets/images/blink.svg', '1'),
+                      _buildStyledButton('Red', Colors.red, '255,0,0'),
                       _buildStyledButton(
-                          'Rainbow', 'assets/images/rainbow.svg', '2'),
+                          'Green', Colors.green, '0,255,0'),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStyledButton('Snake', 'assets/images/snake.svg', '3'),
-                      _buildStyledButton('Fade', 'assets/images/fade.svg', '4'),
+                      _buildStyledButton('Blue', Colors.blue, '0,0,255'),
+                      _buildStyledButton('White', Colors.white, '255,255,255'),
                     ],
+                  ),
+                  Slider(
+                    value: _currentSliderValue,
+                    max: 100,
+                    divisions: 10,
+                    label: _currentSliderValue.round().toString(),
+                    onChanged: (double value) {
+                      setState(() {
+                        _currentSliderValue = value;
+                      });
+                    },
                   ),
                   ElevatedButton(
                     onPressed: () => _publishMessage('0'),
@@ -172,10 +184,11 @@ class _MQTTPageState extends State<MQTTPage> {
     );
   }
 
-  Widget _buildStyledButton(String text, String assetPath, String message) {
+  Widget _buildStyledButton(String text, Color color, String message) {
     return ElevatedButton(
       onPressed: () => _publishMessage(message),
       style: ElevatedButton.styleFrom(
+        backgroundColor: color,
         minimumSize: const Size(100, 150),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -185,10 +198,6 @@ class _MQTTPageState extends State<MQTTPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(text),
-          SvgPicture.asset(
-            assetPath,
-            width: 70,
-          ),
           const SizedBox(height: 8),
         ],
       ),

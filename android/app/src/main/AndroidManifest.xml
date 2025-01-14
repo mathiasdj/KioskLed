@@ -2,7 +2,7 @@
     <application
         android:label="kiosk"
         android:name="${applicationName}"
-        android:icon="@mipmap/kioskico">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"
